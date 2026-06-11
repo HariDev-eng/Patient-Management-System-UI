@@ -1,33 +1,47 @@
-import DashboardCard from "../component/DashboardCard.jsx";
+
 
 export default function Dashboard() {
     return (
-        <div>
-            <h1 className="text-3xl font-bold mb-6">
+        <>
+            <h1 className="text-3xl font-bold mb-8">
                 Dashboard
             </h1>
 
             <div className="grid grid-cols-4 gap-6">
-                <DashboardCard
+
+                <StatCard
                     title="Patients"
                     value="1200"
                 />
 
-                <DashboardCard
+                <StatCard
                     title="Doctors"
                     value="85"
                 />
 
-                <DashboardCard
+                <StatCard
                     title="Appointments"
-                    value="350"
+                    value="354"
                 />
 
-                <DashboardCard
+                <StatCard
                     title="Revenue"
-                    value="₹120000"
+                    value="₹120,000"
                 />
+
             </div>
-        </div>
+
+            <div className="mt-10 grid grid-cols-2 gap-6">
+
+                <div className="bg-white rounded-xl p-6 shadow">
+                    Recent Appointments
+                </div>
+
+                <div className="bg-white rounded-xl p-6 shadow">
+                    Low Stock Medicines
+                </div>
+
+            </div>
+        </>
     );
 }

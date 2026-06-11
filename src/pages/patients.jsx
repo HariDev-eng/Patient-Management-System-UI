@@ -1,29 +1,21 @@
-import DataTable from "../component/DataTable.jsx";
-
+import {
+    Button
+} from "@mui/material";
 
 export default function Patients() {
-    const rows = [
-        {
-            Name: "Hari",
-            Email: "hari@gmail.com",
-            Phone: "9876543210",
-        },
-    ];
-
     return (
-        <div>
-            <h1 className="text-3xl mb-5">
-                Patients
-            </h1>
+        <>
+            <div className="flex justify-between mb-5">
+                <h1 className="text-3xl font-bold">
+                    Patients
+                </h1>
 
-            <DataTable
-                columns={[
-                    "Name",
-                    "Email",
-                    "Phone",
-                ]}
-                rows={rows}
-            />
-        </div>
+                <Button
+                    variant="contained"
+                >
+                    Add Patient
+                </Button>
+            </div>
+        </>
     );
 }

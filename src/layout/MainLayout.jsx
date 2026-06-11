@@ -1,5 +1,5 @@
-import Sidebar from "../component/Sidebar.jsx";
-import Navbar from "../component/Navbar.jsx";
+import Sidebar from "../component/layout/Sidebar.jsx";
+import Navbar from "../component/layout/Navbar.jsx";
 
 
 export default function MainLayout({

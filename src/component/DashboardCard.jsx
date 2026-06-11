@@ -1,22 +1,28 @@
-import { Card, CardContent, Typography } from "@mui/material";
+import {
+    Card,
+    CardContent,
+    Typography
+} from "@mui/material";
 
-export default function DashboardCard({
-                                          title,
-                                          value,
-                                      }) {
+export default function StatCard({
+                                     title,
+                                     value
+                                 }) {
     return (
-        <Card elevation={3}>
+        <Card>
             <CardContent>
-                <Typography
-                    variant="subtitle2"
-                    color="text.secondary"
-                >
+
+                <Typography color="text.secondary">
                     {title}
                 </Typography>
 
-                <Typography variant="h4">
+                <Typography
+                    variant="h4"
+                    fontWeight={700}
+                >
                     {value}
                 </Typography>
+
             </CardContent>
         </Card>
     );
