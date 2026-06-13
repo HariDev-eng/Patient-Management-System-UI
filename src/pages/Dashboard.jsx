@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   Box, Card, CardContent, Typography, Grid,
-  Avatar, LinearProgress, Chip,
+  Avatar, LinearProgress, CircularProgress,
 } from "@mui/material";
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis,
@@ -18,25 +18,9 @@ import { doctorApi } from "../api/doctorApi";
 import { appointmentApi } from "../api/appointmentApi";
 import { billingApi } from "../api/billingApi";
 
-/* ── static demo data (shown even before API connects) ── */
-const DEMO_PATIENTS = [
-  { id: 1, name: "Jenvanantham", patientId: "44795", age: 36, gender: "Male", doctorName: "Dr Keerthana", treatment: "Root canal", status: "Pending" },
-  { id: 2, name: "Kathrinesn",   patientId: "32656", age: 35, gender: "Male", doctorName: "Dr Sree",      treatment: "Bells pelsy", status: "Pending" },
-  { id: 3, name: "Vijey kumar",  patientId: "45062", age: 29, gender: "Male", doctorName: "Dr Priya",     treatment: "High BP",     status: "Complete" },
-  { id: 4, name: "Goji",         patientId: "12345", age: 25, gender: "Male", doctorName: "Dr Sathya",    treatment: "CSBG",        status: "Complete" },
-  { id: 5, name: "Vignesh",      patientId: "45861", age: 48, gender: "Male", doctorName: "Dr Suthakar",  treatment: "CSBG",        status: "Complete" },
-  { id: 6, name: "Seal",         patientId: "95871", age: 18, gender: "Male", doctorName: "Dr John",      treatment: "CSBG",        status: "Complete" },
-];
-
-const PRESCRIPTIONS = [
-  { id: 1, name: "Viday kumar",   title: "Viday kumar prescription",   dosage: "400mg", freq: "1 2days sets", dur: "7 daps" },
-  { id: 2, name: "Kurthnown",     title: "Kurthnown prescription",     dosage: "400mg", freq: "1 2days sets", dur: "7 daps" },
-  { id: 3, name: "jeevervantham", title: "jeevervantham prescription", dosage: "400mg", freq: "1 2days sets", dur: "7 dbps" },
-];
-
 const RADAR_DATA = [
   { subject: "Root canal",   A: 64 },
-  { subject: "Three",        A: 75 },
+  { subject: "Fever",        A: 90 },
   { subject: "High BP",      A: 77 },
   { subject: "Brain Cancer", A: 96 },
   { subject: "CSBG",         A: 80 },
@@ -60,7 +44,6 @@ const TABLE_COLS = [
   { key: "status",     label: "Status", isStatus: true },
 ];
 
-/* ── stat card colours ── */
 const STAT_CARDS = [
   { key: "patients",     label: "Total Patients",  icon: <PersonIcon />,          color: "#0891b2", bg: "#e0f2fe" },
   { key: "doctors",      label: "Doctors",          icon: <MedicalServicesIcon />, color: "#0f766e", bg: "#d1fae5" },
@@ -69,9 +52,10 @@ const STAT_CARDS = [
 ];
 
 export default function Dashboard() {
-  const [patients, setPatients] = useState(DEMO_PATIENTS);
-  const [stats, setStats]       = useState({ patients: "—", doctors: "—", appointments: "—", billing: "—" });
-  const [loading, setLoading]   = useState(false);
+  const [patients, setPatients]   = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [stats, setStats]         = useState({ patients: 0, doctors: 0, appointments: 0, billing: 0 });
+  const [loading, setLoading]     = useState(true);
 
   useEffect(() => {
     setLoading(true);
@@ -81,63 +65,45 @@ export default function Dashboard() {
       appointmentApi.getAll(),
       billingApi.getAll(),
     ]).then(([p, d, a, b]) => {
-      if (p.status === "fulfilled" && p.value.data?.length) {
-        setPatients(p.value.data.slice(0, 6));
-      }
+      // patients table — latest 6
+      const pts = p.status === "fulfilled" ? (p.value.data ?? []) : [];
+      setPatients(pts.slice(0, 6));
+
+      // prescriptions — derive from patients (first 3 with treatment info)
+      const rxPatients = pts.filter((pt) => pt.treatment || pt.prescription).slice(0, 3);
+      setPrescriptions(rxPatients);
+
       setStats({
-        patients:     p.status === "fulfilled" ? p.value.data.length : "—",
-        doctors:      d.status === "fulfilled" ? d.value.data.length : "—",
-        appointments: a.status === "fulfilled" ? a.value.data.length : "—",
-        billing:      b.status === "fulfilled" ? b.value.data.length : "—",
+        patients:     pts.length,
+        doctors:      d.status === "fulfilled" ? (d.value.data ?? []).length : 0,
+        appointments: a.status === "fulfilled" ? (a.value.data ?? []).length : 0,
+        billing:      b.status === "fulfilled" ? (b.value.data ?? []).length : 0,
       });
     }).finally(() => setLoading(false));
   }, []);
 
   return (
     <MainLayout>
-
       {/* ── Stat Cards ── */}
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
         {STAT_CARDS.map(({ key, label, icon, color, bg }) => (
           <Grid item xs={12} sm={6} lg={3} key={key}>
-            <Card
-              sx={{
-                borderRadius: 3,
-                border: "1px solid #e2e8f0",
-                boxShadow: "0 1px 6px rgba(0,0,0,0.06)",
-              }}
-            >
-              <CardContent
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 2,
-                  p: "20px !important",
-                }}
-              >
+            <Card sx={{ borderRadius: 3, border: "1px solid #e2e8f0", boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}>
+              <CardContent sx={{ display: "flex", alignItems: "center", gap: 2, p: "20px !important" }}>
                 <Box
                   sx={{
-                    width: 54, height: 54,
-                    borderRadius: 2.5,
-                    background: bg,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
+                    width: 54, height: 54, borderRadius: 2.5,
+                    background: bg, display: "flex",
+                    alignItems: "center", justifyContent: "center", flexShrink: 0,
                   }}
                 >
                   {React.cloneElement(icon, { sx: { color, fontSize: 26 } })}
                 </Box>
                 <Box>
-                  <Typography
-                    variant="h5"
-                    sx={{ fontWeight: 800, color: "#0f172a", lineHeight: 1 }}
-                  >
-                    {stats[key]}
+                  <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>
+                    {loading ? <CircularProgress size={18} sx={{ color }} /> : stats[key]}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: "#64748b", mt: 0.4 }}>
-                    {label}
-                  </Typography>
+                  <Typography variant="body2" sx={{ color: "#64748b", mt: 0.4 }}>{label}</Typography>
                 </Box>
               </CardContent>
             </Card>
@@ -145,13 +111,11 @@ export default function Dashboard() {
         ))}
       </Grid>
 
-      {/* ── Patient Details Table ── */}
+      {/* ── Patient Table ── */}
       <Card sx={{ mb: 3, borderRadius: 3, border: "1px solid #e2e8f0", boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}>
         <CardContent sx={{ p: "24px !important" }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Patient details
-            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Patient details</Typography>
           </Box>
           <DataTable columns={TABLE_COLS} rows={patients} loading={loading} />
         </CardContent>
@@ -159,114 +123,83 @@ export default function Dashboard() {
 
       {/* ── Bottom Row ── */}
       <Grid container spacing={2.5}>
-
         {/* Prescriptions */}
         <Grid item xs={12} md={7}>
           <Card sx={{ borderRadius: 3, border: "1px solid #e2e8f0", boxShadow: "0 1px 6px rgba(0,0,0,0.06)", height: "100%" }}>
             <CardContent sx={{ p: "20px !important" }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                Prescriptions for patients
-              </Typography>
-              <Box sx={{ display: "flex", gap: 1.5, flexWrap: "nowrap", overflowX: "auto" }}>
-                {PRESCRIPTIONS.map((p) => (
-                  <Box
-                    key={p.id}
-                    sx={{
-                      minWidth: 170, flex: "1 1 170px",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: 2.5,
-                      p: 1.8,
-                      background: "#fff",
-                    }}
-                  >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
-                      <Avatar
-                        sx={{
-                          width: 40, height: 40,
-                          bgcolor: "#0891b2",
-                          fontSize: 14, fontWeight: 700,
-                        }}
-                      >
-                        {p.name[0].toUpperCase()}
-                      </Avatar>
-                      <Typography
-                        sx={{
-                          fontSize: "0.75rem",
-                          fontWeight: 700,
-                          color: "#0f172a",
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        {p.title}
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Prescriptions for patients</Typography>
+              {loading ? (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+                  <CircularProgress size={28} sx={{ color: "#0891b2" }} />
+                </Box>
+              ) : prescriptions.length === 0 ? (
+                <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+                  No prescription data available.
+                </Typography>
+              ) : (
+                <Box sx={{ display: "flex", gap: 1.5, flexWrap: "nowrap", overflowX: "auto" }}>
+                  {prescriptions.map((p, i) => (
+                    <Box
+                      key={p._id ?? p.id ?? i}
+                      sx={{
+                        minWidth: 170, flex: "1 1 170px",
+                        border: "1px solid #e2e8f0", borderRadius: 2.5,
+                        p: 1.8, background: "#fff",
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+                        <Avatar sx={{ width: 38, height: 38, bgcolor: "#0891b2", fontSize: 14, fontWeight: 700 }}>
+                          {(p.name ?? "P")[0].toUpperCase()}
+                        </Avatar>
+                        <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#0f172a", lineHeight: 1.3 }}>
+                          {p.name} prescription
+                        </Typography>
+                      </Box>
+                      <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: "#475569", mb: 0.3 }}>
+                        Prescription detail
+                      </Typography>
+                      <Typography sx={{ fontSize: "0.7rem", color: "#64748b", lineHeight: 1.7 }}>
+                        Treatment: {p.treatment ?? "—"}<br />
+                        Doctor: {p.doctorName ?? "—"}<br />
+                        Status: {p.status ?? "—"}
                       </Typography>
                     </Box>
-                    <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: "#475569", mb: 0.3 }}>
-                      Prescription detail
-                    </Typography>
-                    {[
-                      `Dosage: ${p.dosage}`,
-                      `Frequency, ${p.freq}`,
-                      `Duration: ${p.dur}`,
-                    ].map((line) => (
-                      <Typography key={line} sx={{ fontSize: "0.7rem", color: "#64748b", lineHeight: 1.6 }}>
-                        {line}
-                      </Typography>
-                    ))}
-                  </Box>
-                ))}
-              </Box>
+                  ))}
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Patient Diagnosis Radar */}
+        {/* Diagnosis Radar */}
         <Grid item xs={12} md={5}>
           <Card sx={{ borderRadius: 3, border: "1px solid #e2e8f0", boxShadow: "0 1px 6px rgba(0,0,0,0.06)", height: "100%" }}>
             <CardContent sx={{ p: "20px !important" }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
-                Patient Diagnosis
-              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>Patient Diagnosis</Typography>
               <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                {/* Radar */}
                 <Box sx={{ width: 190, flexShrink: 0 }}>
                   <ResponsiveContainer width="100%" height={185}>
                     <RadarChart cx="50%" cy="50%" outerRadius="70%" data={RADAR_DATA}>
                       <PolarGrid stroke="#e2e8f0" />
-                      <PolarAngleAxis
-                        dataKey="subject"
-                        tick={{ fontSize: 9, fill: "#64748b" }}
-                      />
+                      <PolarAngleAxis dataKey="subject" tick={{ fontSize: 9, fill: "#64748b" }} />
                       <PolarRadiusAxis tick={false} axisLine={false} />
-                      <Radar
-                        dataKey="A"
-                        stroke="#0891b2"
-                        fill="#0891b2"
-                        fillOpacity={0.22}
-                        strokeWidth={2}
-                      />
+                      <Radar dataKey="A" stroke="#0891b2" fill="#0891b2" fillOpacity={0.22} strokeWidth={2} />
                     </RadarChart>
                   </ResponsiveContainer>
                 </Box>
-
-                {/* Stats list */}
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   {DIAGNOSIS_STATS.map((d) => (
                     <Box key={d.label} sx={{ mb: 1.4 }}>
                       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.4 }}>
-                        <Typography sx={{ fontSize: "0.75rem", color: "#475569" }}>
-                          {d.label}
-                        </Typography>
+                        <Typography sx={{ fontSize: "0.75rem", color: "#475569" }}>{d.label}</Typography>
                         <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#0f172a" }}>
                           — {d.value}%
                         </Typography>
                       </Box>
                       <LinearProgress
-                        variant="determinate"
-                        value={d.value}
+                        variant="determinate" value={d.value}
                         sx={{
-                          height: 5,
-                          borderRadius: 3,
-                          bgcolor: "#e0f2fe",
+                          height: 5, borderRadius: 3, bgcolor: "#e0f2fe",
                           "& .MuiLinearProgress-bar": { bgcolor: "#0891b2", borderRadius: 3 },
                         }}
                       />
@@ -277,7 +210,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </Grid>
-
       </Grid>
     </MainLayout>
   );

@@ -1,10 +1,11 @@
-import axiosClient from "./axiosClient";
+import { patientClient } from "./axiosClient";
 
+// Vite proxy: /patients -> http://localhost:4000
 export const patientApi = {
-  create: (data) => axiosClient.post("/api/patients", data),
-  getAll: () => axiosClient.get("/api/patients"),
-  getById: (id) => axiosClient.get(`/api/patients/${id}`),
-  update: (id, data) => axiosClient.put(`/api/patients/${id}`, data),
-  delete: (id) => axiosClient.delete(`/api/patients/${id}`),
-  search: (name) => axiosClient.get(`/api/patients/search?name=${name}`),
+  create:  (data) => patientClient.post("/patients", data),
+  getAll:  ()     => patientClient.get("/patients"),
+  getById: (id)   => patientClient.get(`/patients/${id}`),
+  update:  (id, data) => patientClient.put(`/patients/${id}`, data),
+  delete:  (id)   => patientClient.delete(`/patients/${id}`),
+  search:  (name) => patientClient.get(`/patients/search?name=${name}`),
 };
