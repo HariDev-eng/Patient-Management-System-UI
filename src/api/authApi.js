@@ -1,8 +1,7 @@
-import axiosClient from "./axiosClient";
+import { authClient } from "./axiosClient";
 
+// Vite proxy: /auth -> http://localhost:4005
 export const authApi = {
-  register: (data) => axiosClient.post("/auth/register", data),
-  login: (data) => axiosClient.post("/auth/login", data),
-  me: () => axiosClient.get("/auth/me"),
-  logout: () => axiosClient.post("/auth/logout"),
+  login:    (data) => authClient.post("/auth/login", data),
+  register: (data) => authClient.post("/auth/register", data),
 };

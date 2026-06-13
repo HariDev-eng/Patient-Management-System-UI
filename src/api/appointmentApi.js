@@ -1,12 +1,13 @@
-import axiosClient from "./axiosClient";
+import { appointmentClient } from "./axiosClient";
 
+// Vite proxy: /api/appointment -> http://localhost:4007
 export const appointmentApi = {
-  create: (data) => axiosClient.post("/api/appointment", data),
-  getAll: () => axiosClient.get("/api/appointment"),
-  getById: (id) => axiosClient.get(`/api/appointment/${id}`),
-  updateStatus: (id, status) => axiosClient.put(`/api/appointment/${id}?status=${status}`),
-  delete: (id) => axiosClient.delete(`/api/appointment/${id}`),
-  getByPatient: (patientId) => axiosClient.get(`/api/appointment/patient/${patientId}`),
-  getByDoctor: (doctorId) => axiosClient.get(`/api/appointment/doctor/${doctorId}`),
-  getByStatus: (status) => axiosClient.get(`/api/appointment/status/${status}`),
+  create:       (data)       => appointmentClient.post("/api/appointment", data),
+  getAll:       ()           => appointmentClient.get("/api/appointment"),
+  getById:      (id)         => appointmentClient.get(`/api/appointment/${id}`),
+  updateStatus: (id, status) => appointmentClient.put(`/api/appointment/${id}?status=${status}`),
+  delete:       (id)         => appointmentClient.delete(`/api/appointment/${id}`),
+  getByPatient: (pid)        => appointmentClient.get(`/api/appointment/patient/${pid}`),
+  getByDoctor:  (did)        => appointmentClient.get(`/api/appointment/doctor/${did}`),
+  getByStatus:  (status)     => appointmentClient.get(`/api/appointment/status/${status}`),
 };

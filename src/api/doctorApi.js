@@ -1,11 +1,11 @@
-import axiosClient from "./axiosClient";
+import { doctorClient } from "./axiosClient";
 
 export const doctorApi = {
-  create: (data) => axiosClient.post("/api/doctors", data),
-  getAll: () => axiosClient.get("/api/doctors"),
-  getById: (id) => axiosClient.get(`/api/doctors/${id}`),
-  update: (id, data) => axiosClient.put(`/api/doctors/${id}`, data),
-  delete: (id) => axiosClient.delete(`/api/doctors/${id}`),
-  getBySpecialization: (spec) => axiosClient.get(`/api/doctors/specialization/${spec}`),
-  getAvailability: (id) => axiosClient.get(`/api/doctors/${id}/availability`),
+  create:              (data)   => doctorClient.post("/doctors", data),
+  getAll:              ()       => doctorClient.get("/doctors"),
+  getById:             (id)     => doctorClient.get(`/doctors/${id}`),
+  update:              (id, data) => doctorClient.patch(`/doctors/${id}`, data),
+  delete:              (id)     => doctorClient.delete(`/doctors/${id}`),
+  getBySpecialization: (spec)   => doctorClient.get(`/doctors/search?specialization=${spec}`),
+  getAvailability:     (id)     => doctorClient.get(`/doctors/${id}/availability`),
 };
