@@ -1,21 +1,12 @@
-import axiosClient from "./axiosClient";
+import { billingClient } from "./axiosClient";
 
+// Gateway: /api/bills/** -> billing-service:4001
 export const billingApi = {
-  create: (data) => axiosClient.post("/api/billing", data),
-  getAll: () => axiosClient.get("/api/billing"),
-  getById: (id) => axiosClient.get(`/api/billing/${id}`),
-  update: (id, data) => axiosClient.put(`/api/billing/${id}`, data),
-  delete: (id) => axiosClient.delete(`/api/billing/${id}`),
-  getByPatient: (patientId) => axiosClient.get(`/api/billing/patient/${patientId}`),
-  getByStatus: (status) => axiosClient.get(`/api/billing/status/${status}`),
-};
-
-export const inventoryApi = {
-  create: (data) => axiosClient.post("/api/inventory", data),
-  getAll: () => axiosClient.get("/api/inventory"),
-  getById: (id) => axiosClient.get(`/api/inventory/${id}`),
-  update: (id, data) => axiosClient.put(`/api/inventory/${id}`, data),
-  delete: (id) => axiosClient.delete(`/api/inventory/${id}`),
-  getLowStock: () => axiosClient.get("/api/inventory/low-stock"),
-  search: (name) => axiosClient.get(`/api/inventory/search?name=${name}`),
+  create:      (data)     => billingClient.post("/api/bills", data),
+  getAll:      ()         => billingClient.get("/api/bills"),
+  getById:     (id)       => billingClient.get(`/api/bills/${id}`),
+  update:      (id, data) => billingClient.put(`/api/bills/${id}`, data),
+  delete:      (id)       => billingClient.delete(`/api/bills/${id}`),
+  getByPatient:(pid)      => billingClient.get(`/api/bills/patient/${pid}`),
+  getByStatus: (status)   => billingClient.get(`/api/bills/status/${status}`),
 };

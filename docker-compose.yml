@@ -1,0 +1,15 @@
+services:
+  hospital-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hospital-ui
+    ports:
+      - "3000:5173"
+    networks:
+      - internal
+    restart: unless-stopped
+
+networks:
+  internal:
+    external: true
