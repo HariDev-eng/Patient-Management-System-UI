@@ -1,10 +1,8 @@
 import axios from "axios";
 
-// IMPORTANT: baseURL must be empty string "" so all requests go to
-// localhost:5173 (Vite dev server) which then proxies them to the
-// correct backend port via vite.config.js proxy rules.
-// Never use absolute URLs like http://localhost:4006 — that bypasses the proxy.
-
+// Single client — all requests go through API Gateway (port 4004)
+// In dev: Vite proxy forwards /api and /auth to localhost:4004
+// In Docker: Nginx forwards /api and /auth to api-gateway:4004
 const client = axios.create({
   baseURL: "",
   headers: { "Content-Type": "application/json" },
@@ -20,12 +18,19 @@ client.interceptors.request.use((config) => {
 
 client.interceptors.response.use(
   (res) => res,
-  (err) => Promise.reject(err)
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+    return Promise.reject(err);
+  }
 );
 
-// All services use same client — routing handled by vite proxy
 export const authClient        = client;
 export const patientClient     = client;
 export const doctorClient      = client;
 export const appointmentClient = client;
+export const billingClient     = client;
+export const analyticsClient   = client;
 export default client;

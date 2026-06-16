@@ -1,13 +1,14 @@
 import { appointmentClient } from "./axiosClient";
 
-// Vite proxy: /api/appointment -> http://localhost:4007
+// Gateway: /api/appointments/** -> appointment-service:4007
+// StripPrefix=1 strips /api, so service receives /appointments/**
 export const appointmentApi = {
-  create:       (data)       => appointmentClient.post("/api/appointment", data),
-  getAll:       ()           => appointmentClient.get("/api/appointment"),
-  getById:      (id)         => appointmentClient.get(`/api/appointment/${id}`),
-  updateStatus: (id, status) => appointmentClient.put(`/api/appointment/${id}?status=${status}`),
-  delete:       (id)         => appointmentClient.delete(`/api/appointment/${id}`),
-  getByPatient: (pid)        => appointmentClient.get(`/api/appointment/patient/${pid}`),
-  getByDoctor:  (did)        => appointmentClient.get(`/api/appointment/doctor/${did}`),
-  getByStatus:  (status)     => appointmentClient.get(`/api/appointment/status/${status}`),
+  create:       (data)       => appointmentClient.post("/api/appointments", data),
+  getAll:       ()           => appointmentClient.get("/api/appointments"),
+  getById:      (id)         => appointmentClient.get(`/api/appointments/${id}`),
+  updateStatus: (id, status) => appointmentClient.put(`/api/appointments/${id}?status=${status}`),
+  delete:       (id)         => appointmentClient.delete(`/api/appointments/${id}`),
+  getByPatient: (pid)        => appointmentClient.get(`/api/appointments/patient/${pid}`),
+  getByDoctor:  (did)        => appointmentClient.get(`/api/appointments/doctor/${did}`),
+  getByStatus:  (status)     => appointmentClient.get(`/api/appointments/status/${status}`),
 };

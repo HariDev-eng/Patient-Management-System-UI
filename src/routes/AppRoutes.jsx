@@ -9,24 +9,41 @@ import Appointments from "../pages/Appointments";
 import Billing      from "../pages/Billing";
 import Inventory    from "../pages/Inventory";
 
-const isAuth = () => Boolean(localStorage.getItem("token"));
+// Check token exists AND is not the old skip-auth dummy
+function isAuthenticated() {
+  const token = localStorage.getItem("token");
+  return !!token && token !== "skip-auth";
+}
 
 function Protected({ children }) {
-  return isAuth() ? children : <Navigate to="/login" replace />;
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
+function PublicOnly({ children }) {
+  // If already logged in, redirect away from login/signup
+  if (isAuthenticated()) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
 }
 
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login"        element={<Login />} />
-      <Route path="/signup"       element={<Signup />} />
+      <Route path="/login"  element={<PublicOnly><Login /></PublicOnly>} />
+      <Route path="/signup" element={<PublicOnly><Signup /></PublicOnly>} />
+
       <Route path="/"             element={<Protected><Dashboard /></Protected>} />
       <Route path="/patients"     element={<Protected><Patients /></Protected>} />
       <Route path="/doctors"      element={<Protected><Doctors /></Protected>} />
       <Route path="/appointments" element={<Protected><Appointments /></Protected>} />
       <Route path="/billing"      element={<Protected><Billing /></Protected>} />
       <Route path="/inventory"    element={<Protected><Inventory /></Protected>} />
-      <Route path="*"             element={<Navigate to="/" replace />} />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

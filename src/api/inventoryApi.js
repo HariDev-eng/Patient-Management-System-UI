@@ -1,11 +1,12 @@
-import axiosClient from "./axiosClient";
+import {patientClient} from "./axiosClient.js";
+
 
 export const inventoryApi = {
-  create: (data) => axiosClient.post("/api/inventory", data),
-  getAll: () => axiosClient.get("/api/inventory"),
-  getById: (id) => axiosClient.get(`/api/inventory/${id}`),
-  update: (id, data) => axiosClient.put(`/api/inventory/${id}`, data),
-  delete: (id) => axiosClient.delete(`/api/inventory/${id}`),
-  getLowStock: () => axiosClient.get("/api/inventory/low-stock"),
-  search: (name) => axiosClient.get(`/api/inventory/search?name=${name}`),
-};
+  create: (data) => patientClient.post(`/api/inventory`, data),
+  getAll: (id) => patientClient.get(`/api/inventory`),
+  getById: (id) => patientClient.get(`/api/inventory/${id}`),
+  update: (id, data) => patientClient.put(`/api/inventory/${id}`, data),
+  delete: (id) => patientClient.delete(`/api/inventory/${id}`),
+  getLowStock: (id) => patientClient.get(`/api/inventory/low-stock`),
+  search:  (id) => patientClient.search(`/api/inventory/search?name=${name}`),
+}
