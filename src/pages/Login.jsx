@@ -5,10 +5,11 @@ import {
   InputAdornment, IconButton,
 } from "@mui/material";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import Visibility        from "@mui/icons-material/Visibility";
+import VisibilityOff     from "@mui/icons-material/VisibilityOff";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { getPortal } from "../utils/auth";
 
 export default function Login() {
   const navigate  = useNavigate();
@@ -21,41 +22,26 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
-      // Direct axios call — no interceptors, no token header
-      const res = await axios.post(
-        "/auth/login",
-        { email: form.email, password: form.password },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const res = await axios.post("/auth/login", { email: form.email, password: form.password },
+        { headers: { "Content-Type": "application/json" } });
 
-      const data = res.data;
-      console.log("Login response:", data);
-
+      const data  = res.data;
       const token = data.token ?? data.accessToken ?? data.jwt;
-      if (!token) {
-        setError("Login succeeded but no token received.");
-        return;
-      }
+      if (!token) throw new Error("No token received");
 
-      // Store auth data
       localStorage.setItem("token",     token);
       localStorage.setItem("userEmail", data.email ?? form.email);
-      localStorage.setItem("userRole",  data.role  ?? "");
+      localStorage.setItem("userRole",  data.role  ?? "ADMIN");
+      localStorage.setItem("userId",    data.userId ?? data.id ?? "");
 
-      // Verify it was stored
-      console.log("Token stored:", localStorage.getItem("token")?.substring(0, 20) + "…");
-
-      navigate("/", { replace: true });
+      // Route to correct portal
+      const portal = getPortal();
+      const map = { admin: "/admin", doctor: "/doctor", nurse: "/nurse", patient: "/patient", receptionist: "/receptionist" };
+      navigate(map[portal] ?? "/admin", { replace: true });
 
     } catch (err) {
-      console.error("Login error:", err.response?.status, err.response?.data);
-      setError(
-        err.response?.data?.message ??
-        err.response?.data?.error ??
-        `Error ${err.response?.status}: Login failed.`
-      );
+      setError(err.response?.data?.message ?? err.message ?? "Login failed.");
     } finally {
       setLoading(false);
     }
@@ -64,34 +50,55 @@ export default function Login() {
   return (
     <Box sx={{
       minHeight: "100vh",
-      background: "linear-gradient(135deg, #0891b2 0%, #0e7490 60%, #0f766e 100%)",
+      background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)",
       display: "flex", alignItems: "center", justifyContent: "center",
+      position: "relative", overflow: "hidden",
+      "&::before": {
+        content: '""', position: "absolute",
+        width: 600, height: 600, borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(79,70,229,0.15) 0%, transparent 70%)",
+        top: "-200px", right: "-100px",
+      },
+      "&::after": {
+        content: '""', position: "absolute",
+        width: 400, height: 400, borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(6,182,212,0.1) 0%, transparent 70%)",
+        bottom: "-100px", left: "-100px",
+      },
     }}>
-      <Card sx={{ width: 400, borderRadius: 4, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+      <Card sx={{
+        width: 420, borderRadius: 4,
+        boxShadow: "0 25px 60px rgba(0,0,0,0.4)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        background: "rgba(255,255,255,0.98)",
+        position: "relative", zIndex: 1,
+      }}>
         <CardContent sx={{ p: 4 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 3 }}>
+          {/* Logo */}
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 3.5 }}>
             <Box sx={{
-              width: 64, height: 64, borderRadius: "50%",
-              background: "linear-gradient(135deg, #0891b2, #0e7490)",
-              display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5,
+              width: 56, height: 56, borderRadius: 3,
+              background: "linear-gradient(135deg, #4f46e5, #06b6d4)",
+              display: "flex", alignItems: "center", justifyContent: "center", mb: 2,
+              boxShadow: "0 8px 24px rgba(79,70,229,0.35)",
             }}>
-              <LocalHospitalIcon sx={{ color: "#fff", fontSize: 32 }} />
+              <LocalHospitalIcon sx={{ color: "#fff", fontSize: 28 }} />
             </Box>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: "#0f172a" }}>
+            <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
               CC Health System
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" sx={{ color: "#64748b", mt: 0.5 }}>
               Sign in to your account
             </Typography>
           </Box>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>
+            <Alert severity="error" sx={{ mb: 2.5, borderRadius: 2, fontSize: "0.85rem" }}>{error}</Alert>
           )}
 
           <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <TextField
-              label="Email" type="email" fullWidth required
+              label="Email address" type="email" fullWidth required
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
@@ -103,26 +110,23 @@ export default function Login() {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPwd((p) => !p)} edge="end">
-                      {showPwd ? <VisibilityOff /> : <Visibility />}
+                    <IconButton onClick={() => setShowPwd((p) => !p)} edge="end" size="small">
+                      {showPwd ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
             />
-            <Button
-              type="submit" variant="contained" fullWidth size="large"
-              disabled={loading}
-              sx={{ mt: 1, py: 1.4, borderRadius: 2, fontSize: "1rem", textTransform: "none", fontWeight: 600 }}
-            >
+            <Button type="submit" variant="contained" fullWidth size="large" disabled={loading}
+              sx={{ mt: 0.5, py: 1.5, fontSize: "0.95rem", fontWeight: 700, borderRadius: 2.5 }}>
               {loading ? <CircularProgress size={22} color="inherit" /> : "Sign In"}
             </Button>
           </Box>
 
-          <Typography variant="body2" sx={{ textAlign: "center", mt: 2, color: "#64748b" }}>
+          <Typography variant="body2" sx={{ textAlign: "center", mt: 2.5, color: "#64748b" }}>
             Don't have an account?{" "}
-            <Link to="/signup" style={{ color: "#0891b2", fontWeight: 600, textDecoration: "none" }}>
-              Sign Up
+            <Link to="/signup" style={{ color: "#4f46e5", fontWeight: 700, textDecoration: "none" }}>
+              Sign up
             </Link>
           </Typography>
         </CardContent>
