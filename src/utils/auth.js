@@ -18,5 +18,5 @@ export const getPortal = () => {
 };
 
 export const clearAuth = () => {
-  ["token","userEmail","userRole","userId"].forEach((k) => localStorage.removeItem(k));
+  ["token", "userEmail", "userRole", "userId"].forEach((k) => localStorage.removeItem(k));
 };
